@@ -6,6 +6,7 @@ export default function Header() {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{top: number, left: number} | null>(null);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const categoryRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
   
   const handleCategoryClick = (categoryId: string, event: React.MouseEvent) => {
@@ -23,6 +24,13 @@ export default function Header() {
           dropdown.style.top = `${rect.bottom + 5}px`;
         }
       }
+    }
+  };
+  
+  const handleSubcategoryClick = () => {
+    if (window.innerWidth <= 1023) {
+      setIsMobileMenuOpen(false);
+      setActiveCategory(null);
     }
   };
   
@@ -60,6 +68,90 @@ export default function Header() {
   return (
     <>
       <style jsx>{`
+        .mobile-menu-overlay {
+          display: none;
+        }
+        
+        @media (max-width: 1023px) {
+          .mobile-menu-overlay {
+            display: ${isMobileMenuOpen ? 'block' : 'none'};
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            animation: fadeIn 0.3s ease;
+          }
+          
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+        }
+        
+        .mobile-menu-toggle {
+          display: none;
+        }
+        
+        @media (max-width: 1023px) {
+          .mobile-menu-toggle {
+            display: block;
+            position: fixed;
+            top: clamp(8px, 2vw, 15px);
+            right: clamp(8px, 2vw, 15px);
+            z-index: 1002;
+            background-color: #ff3366;
+            border: none;
+            border-radius: clamp(6px, 1.5vw, 10px);
+            padding: clamp(8px, 2vw, 12px) clamp(10px, 2.5vw, 14px);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+          }
+          
+          .mobile-menu-toggle:hover {
+            background-color: #ff1a4d;
+            transform: scale(1.05);
+          }
+          
+          .mobile-menu-toggle:active {
+            transform: scale(0.95);
+          }
+          
+          .hamburger-icon {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(3px, 0.8vw, 5px);
+            width: clamp(20px, 4.5vw, 28px);
+          }
+          
+          .hamburger-line {
+            width: 100%;
+            height: clamp(2px, 0.4vw, 3px);
+            background-color: white;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+          }
+          
+          .mobile-menu-toggle.open .hamburger-line:nth-child(1) {
+            transform: translateY(clamp(5px, 1.2vw, 7px)) rotate(45deg);
+          }
+          
+          .mobile-menu-toggle.open .hamburger-line:nth-child(2) {
+            opacity: 0;
+          }
+          
+          .mobile-menu-toggle.open .hamburger-line:nth-child(3) {
+            transform: translateY(clamp(-5px, -1.2vw, -7px)) rotate(-45deg);
+          }
+        }
+      
         #allcategory {
           display: flex;
           justify-content: center;
@@ -76,21 +168,43 @@ export default function Header() {
 
         @media (max-width: 1023px) {
           #allcategory {
-            display: flex !important;
-            padding: 5px 10px;
-            overflow-x: auto;
-            overflow-y: visible;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            scrollbar-color: #ccc transparent;
-            gap: 0;
-            position: relative;
+            display: ${isMobileMenuOpen ? 'flex' : 'none'} !important;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            padding: clamp(8px, 2vw, 15px) clamp(5px, 1.5vw, 10px);
+            overflow: visible;
+            gap: clamp(5px, 1.5vw, 10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             z-index: 1000;
+            background: #FAFAFA;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+          }
+          
+          @keyframes slideDown {
+            from {
+              transform: translateY(-100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateY(0);
+              opacity: 1;
+            }
+          }
+          
+          .scroll-spacer-left,
+          .scroll-spacer-right {
+            display: none;
           }
           
           #allcategory::-webkit-scrollbar {
-            height: 4px;
+            width: clamp(3px, 0.5vw, 5px);
           }
           
           #allcategory::-webkit-scrollbar-track {
@@ -107,67 +221,43 @@ export default function Header() {
           }
           
           .category-block {
-            margin: 2px 8px;
-            min-width: 60px;
-            flex-shrink: 0;
+            margin: 0;
+            min-width: clamp(60px, 12vw, 90px);
+            flex: 0 0 auto;
+            width: clamp(60px, 12vw, 90px);
+          }
+          
+          .category-block:first-child {
+            margin-left: 0;
+          }
+          
+          .category-block:last-child {
+            margin-right: 0;
           }
           
           .category-icon img {
-            width: 25px;
-            height: 25px;
+            width: clamp(20px, 4.5vw, 30px);
+            height: clamp(20px, 4.5vw, 30px);
           }
           
           .category-title {
-            font-size: 10px;
+            font-size: clamp(9px, 2vw, 12px);
           }
           
           .aerooe {
-            width: 8px;
-            height: 8px;
-            margin-left: 3px;
+            width: clamp(6px, 1.5vw, 10px);
+            height: clamp(6px, 1.5vw, 10px);
+            margin-left: clamp(2px, 0.5vw, 4px);
           }
           
           .subcategory-dropdown {
-            min-width: 120px;
-            padding: 8px;
+            min-width: clamp(100px, 20vw, 150px);
+            padding: clamp(6px, 1.5vw, 10px);
           }
           
           .subcategory-item {
-            padding: 6px 8px;
-            font-size: 11px;
-          }
-        }
-        
-        @media (max-width: 640px) {
-          .category-block {
-            margin: 1px 4px;
-            min-width: 50px;
-            flex-shrink: 0;
-          }
-          
-          .category-icon img {
-            width: 20px;
-            height: 20px;
-          }
-          
-          .category-title {
-            font-size: 9px;
-          }
-          
-          .aerooe {
-            width: 6px;
-            height: 6px;
-            margin-left: 2px;
-          }
-          
-          .subcategory-dropdown {
-            min-width: 100px;
-            padding: 6px;
-          }
-          
-          .subcategory-item {
-            padding: 4px 6px;
-            font-size: 10px;
+            padding: clamp(4px, 1vw, 8px) clamp(6px, 1.5vw, 10px);
+            font-size: clamp(10px, 2vw, 13px);
           }
         }
 
@@ -319,7 +409,25 @@ export default function Header() {
         }
       `}</style>
       
+      <div 
+        className="mobile-menu-overlay"
+        onClick={() => setIsMobileMenuOpen(false)}
+      ></div>
+      
+      <button 
+        className={`mobile-menu-toggle ${isMobileMenuOpen ? 'open' : ''}`}
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label="Toggle mobile menu"
+      >
+        <div className="hamburger-icon">
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+          <span className="hamburger-line"></span>
+        </div>
+      </button>
+      
       <div id="allcategory">
+        <div className="scroll-spacer-left"></div>
         <div 
           className={`category-block ${activeCategory === 'all' ? 'active' : ''}`}
           data-category-id="null" 
@@ -354,10 +462,10 @@ export default function Header() {
             <img className="aerooe" src="/Image/Oolee/Vectoraccorden.png" />
           </div>
           <div className="subcategory-dropdown">
-            <div className="subcategory-item" data-category-id="1" data-subcategory-id="14">
+            <div className="subcategory-item" data-category-id="1" data-subcategory-id="14" onClick={handleSubcategoryClick}>
               New Cars
             </div>
-            <div className="subcategory-item" data-category-id="1" data-subcategory-id="20">
+            <div className="subcategory-item" data-category-id="1" data-subcategory-id="20" onClick={handleSubcategoryClick}>
               Wheels & Tyres
             </div>
           </div>
@@ -377,7 +485,7 @@ export default function Header() {
             <img className="aerooe" src="/Image/Oolee/Vectoraccorden.png" />
           </div>
           <div className="subcategory-dropdown">
-            <div className="subcategory-item" data-category-id="2" data-subcategory-id="15">
+            <div className="subcategory-item" data-category-id="2" data-subcategory-id="15" onClick={handleSubcategoryClick}>
               Exercise Equipment
             </div>
           </div>
@@ -397,19 +505,19 @@ export default function Header() {
             <img className="aerooe" src="/Image/Oolee/Vectoraccorden.png" />
           </div>
           <div className="subcategory-dropdown">
-            <div className="subcategory-item" data-category-id="3" data-subcategory-id="3">
+            <div className="subcategory-item" data-category-id="3" data-subcategory-id="3" onClick={handleSubcategoryClick}>
               Meal Services
             </div>
-            <div className="subcategory-item" data-category-id="3" data-subcategory-id="4">
+            <div className="subcategory-item" data-category-id="3" data-subcategory-id="4" onClick={handleSubcategoryClick}>
               Energy
             </div>
-            <div className="subcategory-item" data-category-id="3" data-subcategory-id="17">
+            <div className="subcategory-item" data-category-id="3" data-subcategory-id="17" onClick={handleSubcategoryClick}>
               Beer & Wine
             </div>
-            <div className="subcategory-item" data-category-id="3" data-subcategory-id="24">
+            <div className="subcategory-item" data-category-id="3" data-subcategory-id="24" onClick={handleSubcategoryClick}>
               Pharmacy & Vitamins
             </div>
-            <div className="subcategory-item" data-category-id="3" data-subcategory-id="25">
+            <div className="subcategory-item" data-category-id="3" data-subcategory-id="25" onClick={handleSubcategoryClick}>
               Health Insurance
             </div>
           </div>
@@ -429,13 +537,13 @@ export default function Header() {
             <img className="aerooe" src="/Image/Oolee/Vectoraccorden.png" />
           </div>
           <div className="subcategory-dropdown">
-            <div className="subcategory-item" data-category-id="4" data-subcategory-id="5">
+            <div className="subcategory-item" data-category-id="4" data-subcategory-id="5" onClick={handleSubcategoryClick}>
               Footwear
             </div>
-            <div className="subcategory-item" data-category-id="4" data-subcategory-id="6">
+            <div className="subcategory-item" data-category-id="4" data-subcategory-id="6" onClick={handleSubcategoryClick}>
               Fashion
             </div>
-            <div className="subcategory-item" data-category-id="4" data-subcategory-id="7">
+            <div className="subcategory-item" data-category-id="4" data-subcategory-id="7" onClick={handleSubcategoryClick}>
               Bags & Luggage
             </div>
           </div>
@@ -455,13 +563,13 @@ export default function Header() {
             <img className="aerooe" src="/Image/Oolee/Vectoraccorden.png" />
           </div>
           <div className="subcategory-dropdown">
-            <div className="subcategory-item" data-category-id="5" data-subcategory-id="16">
+            <div className="subcategory-item" data-category-id="5" data-subcategory-id="16" onClick={handleSubcategoryClick}>
               Furniture
             </div>
-            <div className="subcategory-item" data-category-id="5" data-subcategory-id="19">
+            <div className="subcategory-item" data-category-id="5" data-subcategory-id="19" onClick={handleSubcategoryClick}>
               Appliances
             </div>
-            <div className="subcategory-item" data-category-id="5" data-subcategory-id="21">
+            <div className="subcategory-item" data-category-id="5" data-subcategory-id="21" onClick={handleSubcategoryClick}>
               Homewares
             </div>
           </div>
@@ -481,7 +589,7 @@ export default function Header() {
             <img className="aerooe" src="/Image/Oolee/Vectoraccorden.png" />
           </div>
           <div className="subcategory-dropdown">
-            <div className="subcategory-item" data-category-id="6" data-subcategory-id="18">
+            <div className="subcategory-item" data-category-id="6" data-subcategory-id="18" onClick={handleSubcategoryClick}>
               Beauty
             </div>
           </div>
@@ -501,13 +609,13 @@ export default function Header() {
             <img className="aerooe" src="/Image/Oolee/Vectoraccorden.png" />
           </div>
           <div className="subcategory-dropdown">
-            <div className="subcategory-item" data-category-id="7" data-subcategory-id="11">
+            <div className="subcategory-item" data-category-id="7" data-subcategory-id="11" onClick={handleSubcategoryClick}>
               Car Rentals
             </div>
-            <div className="subcategory-item" data-category-id="7" data-subcategory-id="12">
+            <div className="subcategory-item" data-category-id="7" data-subcategory-id="12" onClick={handleSubcategoryClick}>
               Cruises
             </div>
-            <div className="subcategory-item" data-category-id="7" data-subcategory-id="13">
+            <div className="subcategory-item" data-category-id="7" data-subcategory-id="13" onClick={handleSubcategoryClick}>
               Travel Insurance
             </div>
           </div>
@@ -527,17 +635,18 @@ export default function Header() {
             <img className="aerooe" src="/Image/Oolee/Vectoraccorden.png" />
           </div>
           <div className="subcategory-dropdown">
-            <div className="subcategory-item" data-category-id="8" data-subcategory-id="8">
+            <div className="subcategory-item" data-category-id="8" data-subcategory-id="8" onClick={handleSubcategoryClick}>
               Photography & Video
             </div>
-            <div className="subcategory-item" data-category-id="8" data-subcategory-id="9">
+            <div className="subcategory-item" data-category-id="8" data-subcategory-id="9" onClick={handleSubcategoryClick}>
               Phones
             </div>
-            <div className="subcategory-item" data-category-id="8" data-subcategory-id="23">
+            <div className="subcategory-item" data-category-id="8" data-subcategory-id="23" onClick={handleSubcategoryClick}>
               Computers & Tablets
             </div>
           </div>
         </div>
+        <div className="scroll-spacer-right"></div>
       </div>
     </>
   );
